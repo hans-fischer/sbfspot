@@ -95,7 +95,7 @@ checkSBFConfig() {
                 if `mount | grep -q -e "$datadir "`; then
                     if [ -w $confdir/SBFspot.cfg ]; then
                         if ! `getConfigValue OutputPath | grep -q -e "^/var/sbfspot$"` && \
-                                ! `getConfigValue OutputPath | grep -q -e "^/var/sbfspot/"`; then    
+                                ! `getConfigValue OutputPath | grep -q -e "^/var/sbfspot/"`; then
                             setConfigValue "OutputPath" "$datadir/%Y"
                             echo "Wrong OutputPath value in SBFspot.cfg. I change it to \"$datadir/%Y\""
                         fi
@@ -116,7 +116,7 @@ checkSBFConfig() {
                     echo "Please map the directory and restart the container."
                     exit 1
                 fi
-                
+
                 # check if data directory is writeable
                 if [ ! -w $datadir ]; then
                     echo "Mapped Data directory is not writeable for user with ID `id -u sbfspot`."
@@ -134,7 +134,7 @@ checkSBFConfig() {
                 fi
             fi
             if [ "$DB_STORAGE" = "sqlite" ]; then
-                if `mount | grep -q -e "$datadir "`; then # check if data dir is mapped into the container 
+                if `mount | grep -q -e "$datadir "`; then # check if data dir is mapped into the container
                     if [ ! -e $datadir/sbfspot.db ]; then # check if database file exists
                         if [ -z "$INIT_DB" ] || [ $INIT_DB -ne 1 ]; then
                             echo "SQLite database file under \"$datadir/sbfspot.db\" does not exist. Please initialize the database."
@@ -157,9 +157,9 @@ checkSBFConfig() {
                     echo "Please map the directory and restart the container."
                     exit 1
                 fi
-                
+
                 if [ -w $confdir/SBFspot.cfg ]; then # check if SQLite DB is correctly configured in SBFspot.cfg
-                    if ! `getConfigValue SQL_Database | grep -q -e "^$datadir/sbfspot.db"`; then    
+                    if ! `getConfigValue SQL_Database | grep -q -e "^$datadir/sbfspot.db"`; then
                         setConfigValue "SQL_Database" "$datadir/sbfspot.db"
                         echo "Wrong SQL_Database value in SBFspot.cfg. I change it to \"$datadir/sbfspot.db\""
                     fi
@@ -180,13 +180,13 @@ checkSBFConfig() {
 		echo "Please map the directory and restart the container."
 		exit 1
     fi
-    
+
     if [ $ERROR_FLAG -eq 1 ]; then
         echo "Please configure the listed value(s) and restart the container."
         exit 1
     fi
 }
- 
+
 checkSBFUploadConfig() {
     ERROR_FLAG=0
 	if `mount | grep -q -e "$confdir "`; then
@@ -204,7 +204,7 @@ checkSBFUploadConfig() {
                 echo "Otherwise the production data can't be uploaded to PVoutput."
                 ERROR_FLAG=1
             fi
-            
+
             if [ "$DB_STORAGE" = "sqlite" ]; then # check if SQLite DB is correctly configured in SBFspot.cfg
                 if ! `getUploadConfigValue SQL_Database | grep -q -e "^$datadir/sbfspot.db"`; then
                     if [ -w $confdir/SBFspotUpload.cfg ]; then
@@ -228,7 +228,7 @@ checkSBFUploadConfig() {
 		echo "Please map the directory and restart the container."
 		exit 1
     fi
-    
+
     if [ $ERROR_FLAG -eq 1 ]; then
         echo "Please configure the listed value(s) and restart the container."
         exit 1
@@ -275,7 +275,7 @@ initDatabase() {
         USER=`getConfigValue SQL_Username`
         PW=`getConfigValue SQL_Password`
         LOCAL_IP=`ip ro show | grep 'docker0\|eth0' | awk '{print $(NF)}'`
-        
+
         ERROR_FLAG=0
         if [ -z "$HOST" ]; then
             ERROR_FLAG=1
@@ -317,7 +317,7 @@ initDatabase() {
         SQL_USER_CHANGE="ALTER USER '$USER'@'$LOCAL_IP' IDENTIFIED BY '$PW';"
         SQL_GRANT1="GRANT INSERT,SELECT,UPDATE ON SBFspot.* TO '$USER'@'$LOCAL_IP';"
         SQL_GRANT2="GRANT DELETE,INSERT,SELECT,UPDATE ON SBFspot.MonthData TO '$USER'@'$LOCAL_IP';"
-        
+
         if `mysql -h $HOST --protocol=TCP -u $DB_ROOT_USER -p$DB_ROOT_PW -e "SELECT User FROM mysql.user;" | grep -q -e $USER`; then
             echo "User $USER exists in Database, only changing password"
             mysql -h $HOST --protocol=TCP -u $DB_ROOT_USER -p$DB_ROOT_PW -e "$SQL_USER_CHANGE"
@@ -355,7 +355,7 @@ selectSBFspotBinary() {
             echo "storage type \"$DB_STORAGE\" not available. Options: sqlite | mysql | mariadb"
             exit 1
         fi
-        
+
         checkSBFConfig
     fi
 }
@@ -372,7 +372,7 @@ selectSBFspotUploadBinary() {
             echo "storage type \"$DB_STORAGE\" not available for SBFspotUploadDaemon. Options: sqlite | mysql | mariadb"
             exit 1
         fi
-        
+
         checkSBFUploadConfig
     fi
 }
@@ -440,11 +440,6 @@ fi
 
 # add Options to SBFspot cmdline
 setupSBFspotOptions
-
-if [ $SBFSPOT_INTERVAL -lt 60 ]; then
-    SBFSPOT_INTERVAL=60;
-    echo "SBFSPOT_INTERVAL is very short. It will be set to 60 seconds."
-fi
 
 while [ TRUE ]; do
     if [ -n "$sbfspotbinary" ]; then
